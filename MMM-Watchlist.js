@@ -264,4 +264,5 @@ Module.register("MMM-Watchlist", {
       const sign = num > 0 ? "+" : "";
       return sign + num.toFixed(decimals);
     }
-  });
+  }
+});
