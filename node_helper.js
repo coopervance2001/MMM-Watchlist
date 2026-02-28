@@ -1,5 +1,16 @@
 const NodeHelper = require("node_helper");
 
+let fetchFn = globalThis.fetch;
+
+async function ensureFetch() {
+  if (fetchFn) return fetchFn;
+
+  // node-fetch v3 is ESM-only, so we use dynamic import
+  const mod = await import("node-fetch");
+  fetchFn = mod.default;
+  return fetchFn;
+}
+
 function clamp(n, a, b) {
   return Math.max(a, Math.min(b, n));
 }
@@ -256,9 +267,11 @@ module.exports = NodeHelper.create({
     return JSON.parse(text);
   },
 
-  async fetchText(url, timeoutMs) {
+    async fetchText(url, timeoutMs) {
     const fetch = await ensureFetch();
-    const res = await fetch(url, { /* ... */ });
+
+    const controller = new AbortController();
+    const id = setTimeout(() => controller.abort(), timeoutMs);
 
     try {
       const res = await fetch(url, {
@@ -271,7 +284,9 @@ module.exports = NodeHelper.create({
       });
 
       if (!res.ok) {
-        const hint = res.status === 429 ? " (rate limited; backoff will increase automatically)" : "";
+        const hint = res.status === 429
+          ? " (rate limited; backoff will increase automatically)"
+          : "";
         throw new Error(`HTTP ${res.status} fetching ${url}${hint}`);
       }
 
@@ -280,5 +295,4 @@ module.exports = NodeHelper.create({
       clearTimeout(id);
     }
   }
-
 });
