@@ -8,6 +8,6 @@
 ## Installation
 ```bash
 cd ~/MagicMirror/modules
-git clone https://github.com/<YOUR_GITHUB_USERNAME>/MMM-Watchlist.git
+git clone https://github.com/coopervance2001/MMM-Watchlist
 cd MMM-Watchlist
 npm install
