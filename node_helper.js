@@ -183,8 +183,9 @@ module.exports = NodeHelper.create({
     }
 
     const url =
-      "https://query1.finance.yahoo.com/v7/finance/quote?symbols=" +
-      encodeURIComponent(key);
+      const url =
+        "https://query2.finance.yahoo.com/v7/finance/quote?symbols=" +
+        encodeURIComponent(key);
 
     const json = await this.fetchJson(url, timeoutMs);
     const results = json?.quoteResponse?.result || [];
@@ -230,8 +231,8 @@ module.exports = NodeHelper.create({
       }
 
       const url =
-        `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(sym)}` +
-        `?range=${encodeURIComponent(range)}&interval=${encodeURIComponent(interval)}`;
+    `https://query2.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(sym)}` +
+    `?range=${encodeURIComponent(range)}&interval=${encodeURIComponent(interval)}`;
 
       try {
         const json = await this.fetchJson(url, timeoutMs);
@@ -277,8 +278,11 @@ module.exports = NodeHelper.create({
       const res = await fetch(url, {
         method: "GET",
         headers: {
-          "User-Agent": "MagicMirror MMM-Watchlist",
-          "Accept": "application/json,text/plain,*/*"
+          "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+          "Accept": "application/json,text/plain,*/*",
+          "Accept-Language": "en-US,en;q=0.9",
+          "Referer": "https://finance.yahoo.com/",
+          "Origin": "https://finance.yahoo.com"
         },
         signal: controller.signal
       });
@@ -296,3 +300,4 @@ module.exports = NodeHelper.create({
     }
   }
 });
+
