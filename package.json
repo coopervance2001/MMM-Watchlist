@@ -1,0 +1,8 @@
+{
+    "name": "mmm-watchlist",
+    "version": "0.1.0",
+    "description": "MagicMirror module to display a stock/ETF watchlist table",
+    "main": "MMM-Watchlist.js",
+    "author": "you",
+    "license": "MIT"
+  }

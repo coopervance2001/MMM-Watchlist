@@ -1,0 +1,67 @@
+.mmm-wl-table {
+    border-collapse: collapse;
+    width: 100%;
+  }
+  
+  .mmm-wl-table th {
+    text-align: left;
+    font-weight: 600;
+    padding: 0 10px 6px 0;
+    opacity: 0.85;
+  }
+  
+  .mmm-wl-table td {
+    padding: 2px 10px 2px 0;
+    white-space: nowrap;
+  }
+  
+  .mmm-wl-table td.col-name {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 260px;
+  }
+  
+  .mmm-wl-table td.col-price,
+  .mmm-wl-table td.col-change,
+  .mmm-wl-table td.col-changePercent,
+  .mmm-wl-table td.col-prePrice,
+  .mmm-wl-table td.col-preChgPct,
+  .mmm-wl-table td.col-postPrice,
+  .mmm-wl-table td.col-postChgPct {
+    text-align: right;
+  }
+  
+  /* price move coloring */
+  .mmm-wl-table tr.pos td.col-change,
+  .mmm-wl-table tr.pos td.col-changePercent {
+    color: #6f6;
+  }
+  
+  .mmm-wl-table tr.neg td.col-change,
+  .mmm-wl-table tr.neg td.col-changePercent {
+    color: #f66;
+  }
+  
+  /* sparklines */
+  .mmm-wl-table td.col-spark {
+    padding-right: 0;
+  }
+  
+  .spark svg {
+    display: block;
+    opacity: 0.9;
+    color: rgba(255, 255, 255, 0.85);
+  }
+  
+  .mmm-wl-table tr.pos .spark svg {
+    color: rgba(120, 255, 120, 0.9);
+  }
+  
+  .mmm-wl-table tr.neg .spark svg {
+    color: rgba(255, 120, 120, 0.9);
+  }
+  
+  .spark polyline {
+    stroke: currentColor;
+  }
