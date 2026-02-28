@@ -1,20 +1,14 @@
 {
-    "name": "mmm-watchlist",
-    "version": "0.1.0",
-    "description": "MagicMirror module to display a stock/ETF watchlist table",
-    "main": "MMM-Watchlist.js",
-    "author": "coopervance2001",
-    "license": "MIT"
-{
-    "name": "mmm-watchlist",
-    "version": "0.1.0",
-    "description": "MagicMirror module to display a stock/ETF watchlist table",
-    "main": "MMM-Watchlist.js",
-    "author": "you",
-    "license": "MIT",
-    "dependencies": {
-        "node-fetch": "^3.3.2"
-      }
-    }
+  "name": "mmm-watchlist",
+  "version": "0.1.0",
+  "description": "MagicMirror module to display a stock/ETF watchlist table",
+  "main": "MMM-Watchlist.js",
+  "author": "coopervance2001",
+  "license": "MIT",
+  "dependencies": {
+    "node-fetch": "^3.3.2"
+  },
+  "engines": {
+    "node": ">=16"
   }
-
+}
