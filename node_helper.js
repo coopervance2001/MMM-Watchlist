@@ -257,8 +257,8 @@ module.exports = NodeHelper.create({
   },
 
   async fetchText(url, timeoutMs) {
-    const controller = new AbortController();
-    const id = setTimeout(() => controller.abort(), timeoutMs);
+    const fetch = await ensureFetch();
+    const res = await fetch(url, { /* ... */ });
 
     try {
       const res = await fetch(url, {
@@ -280,4 +280,5 @@ module.exports = NodeHelper.create({
       clearTimeout(id);
     }
   }
+
 });
