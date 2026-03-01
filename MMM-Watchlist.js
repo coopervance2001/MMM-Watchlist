@@ -6,7 +6,7 @@ Module.register("MMM-Watchlist", {
       symbolsUrl: "",
       refreshInterval: 60 * 1000,
       requestTimeout: 12 * 1000,
-      columns: ["symbol", "currentPrice", "previousOpen", "change", "changePercent"],
+      columns: ["symbol", "currentPrice", "previousClose", "change", "changePercent"],
       maxNameLength: 24,
       decimals: 2,
       showHeader: true,
@@ -168,5 +168,6 @@ Module.register("MMM-Watchlist", {
     }
   });
   
+
 
 
