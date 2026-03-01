@@ -4,43 +4,17 @@ Module.register("MMM-Watchlist", {
   defaults: {
     symbols: ["AAPL", "MSFT", "VOO"],
     symbolsUrl: "",
-
     refreshInterval: 60 * 1000,
     requestTimeout: 12 * 1000,
-
-    backoff: {
-      enabled: true,
-      initialMs: 60 * 1000,
-      maxMs: 15 * 60 * 1000,
-      multiplier: 2,
-      jitterRatio: 0.15
-    },
-
-    sparkline: {
-      enabled: true,
-      range: "1d",
-      interval: "5m",
-      pointsMax: 48,
-      width: 120,
-      height: 24,
-      limit: 12,
-      cacheMs: 10 * 60 * 1000
-    },
-
-    columns: [
-      "symbol", "name", "price", "change", "changePercent",
-      "prePrice", "preChgPct",
-      "postPrice", "postChgPct",
-      "spark"
-    ],
-
+    columns: ["symbol", "name", "price", "change", "changePercent", "prePrice", "preChgPct", "postPrice", "postChgPct", "spark"],
     maxNameLength: 24,
     decimals: 2,
     showHeader: true,
-    sort: "none" // "none" | "symbol"
+    sort: "none",
+    sparkline: { enabled: true, width: 120, height: 24 }
   },
 
-  start() {
+  start: function () {
     this.loaded = false;
     this.dataRows = [];
     this.error = null;
@@ -58,11 +32,11 @@ Module.register("MMM-Watchlist", {
     this.updateDom(0);
   },
 
-  socketNotificationReceived(notification, payload) {
+  socketNotificationReceived: function (notification, payload) {
     if (notification === "MMM_WL_DATA") {
       this.loaded = true;
       this.error = null;
-      this.dataRows = payload.rows || [];
+      this.dataRows = (payload && payload.rows) ? payload.rows : [];
       this.updateDom(150);
     }
 
@@ -73,12 +47,12 @@ Module.register("MMM-Watchlist", {
     }
   },
 
-  getStyles() {
+  getStyles: function () {
     return ["MMM-Watchlist.css"];
   },
 
-  getDom() {
-    const wrapper = document.createElement("div");
+  getDom: function () {
+    var wrapper = document.createElement("div");
     wrapper.className = "mmm-wl";
 
     if (!this.loaded) {
@@ -89,46 +63,49 @@ Module.register("MMM-Watchlist", {
 
     if (this.error) {
       wrapper.classList.add("small");
-      wrapper.innerText = `Watchlist error: ${this.error}`;
+      wrapper.innerText = "Watchlist error: " + this.error;
       return wrapper;
     }
 
-    if (!this.dataRows.length) {
+    if (!this.dataRows || !this.dataRows.length) {
       wrapper.classList.add("dimmed", "small");
       wrapper.innerText = "No symbols to display.";
       return wrapper;
     }
 
-    const table = document.createElement("table");
+    var table = document.createElement("table");
     table.className = "mmm-wl-table small";
 
     if (this.config.showHeader) {
-      const thead = document.createElement("thead");
-      const tr = document.createElement("tr");
-      for (const col of this.config.columns) {
-        const th = document.createElement("th");
+      var thead = document.createElement("thead");
+      var trh = document.createElement("tr");
+      for (var i = 0; i < this.config.columns.length; i++) {
+        var col = this.config.columns[i];
+        var th = document.createElement("th");
         th.textContent = this.prettyCol(col);
-        tr.appendChild(th);
+        trh.appendChild(th);
       }
-      thead.appendChild(tr);
+      thead.appendChild(trh);
       table.appendChild(thead);
     }
 
-    const tbody = document.createElement("tbody");
+    var tbody = document.createElement("tbody");
 
-    for (const row of this.dataRows) {
-      const tr = document.createElement("tr");
+    for (var r = 0; r < this.dataRows.length; r++) {
+      var row = this.dataRows[r];
+      var tr = document.createElement("tr");
 
-      const chg = Number(row.change || 0);
+      var chg = Number(row && row.change ? row.change : 0);
       if (chg > 0) tr.classList.add("pos");
       if (chg < 0) tr.classList.add("neg");
 
-      for (const col of this.config.columns) {
-        const td = document.createElement("td");
-        td.className = `col-${col}`;
+      for (var c = 0; c < this.config.columns.length; c++) {
+        var colName = this.config.columns[c];
+        var td = document.createElement("td");
+        td.className = "col-" + colName;
 
-        if (col === "spark") td.appendChild(this.renderSpark(row));
-        else td.textContent = this.formatCell(col, row);
+        if (colName === "spark") td.appendChild(this.renderSpark(row));
+        else td.textContent = this.formatCell(colName, row);
 
         tr.appendChild(td);
       }
@@ -141,8 +118,8 @@ Module.register("MMM-Watchlist", {
     return wrapper;
   },
 
-  prettyCol(col) {
-    const map = {
+  prettyCol: function (col) {
+    var map = {
       symbol: "Symbol",
       name: "Name",
       price: "Last",
@@ -157,81 +134,44 @@ Module.register("MMM-Watchlist", {
     return map[col] || col;
   },
 
-  formatCell(col, row) {
-    const d = this.config.decimals;
+  formatCell: function (col, row) {
+    var d = this.config.decimals;
 
-    switch (col) {
-      case "symbol": return row.symbol || "";
-      case "name": {
-        const name = row.name || "";
-        return name.length > this.config.maxNameLength
-          ? name.slice(0, this.config.maxNameLength - 1) + "…"
-          : name;
-      }
-      case "price": return this.fmtNum(row.price, d);
-      case "change": return this.fmtSigned(row.change, d);
-      case "changePercent": return this.fmtSigned(row.changePercent, d) + "%";
-      case "prePrice": return row.preMarketActive ? this.fmtNum(row.prePrice, d) : "—";
-      case "preChgPct": return row.preMarketActive ? (this.fmtSigned(row.preChgPct, d) + "%") : "—";
-      case "postPrice": return row.postMarketActive ? this.fmtNum(row.postPrice, d) : "—";
-      case "postChgPct": return row.postMarketActive ? (this.fmtSigned(row.postChgPct, d) + "%") : "—";
-      default: return (row[col] != null) ? String(row[col]) : "";
+    if (col === "symbol") return (row && row.symbol) ? row.symbol : "";
+    if (col === "name") {
+      var name = (row && row.name) ? row.name : "";
+      return name.length > this.config.maxNameLength ? name.slice(0, this.config.maxNameLength - 1) + "…" : name;
     }
+    if (col === "price") return this.fmtNum(row ? row.price : null, d);
+    if (col === "change") return this.fmtSigned(row ? row.change : null, d);
+    if (col === "changePercent") return this.fmtSigned(row ? row.changePercent : null, d) + "%";
+
+    if (col === "prePrice") return (row && row.preMarketActive) ? this.fmtNum(row.prePrice, d) : "—";
+    if (col === "preChgPct") return (row && row.preMarketActive) ? (this.fmtSigned(row.preChgPct, d) + "%") : "—";
+
+    if (col === "postPrice") return (row && row.postMarketActive) ? this.fmtNum(row.postPrice, d) : "—";
+    if (col === "postChgPct") return (row && row.postMarketActive) ? (this.fmtSigned(row.postChgPct, d) + "%") : "—";
+
+    return (row && row[col] != null) ? String(row[col]) : "";
   },
 
-  renderSpark(row) {
-    const w = this.config.sparkline.width;
-    const h = this.config.sparkline.height;
-
-    const container = document.createElement("div");
+  renderSpark: function (row) {
+    var container = document.createElement("div");
     container.className = "spark";
-
-    const pts = Array.isArray(row.spark) ? row.spark : [];
-    if (!this.config.sparkline.enabled || pts.length < 2) return container;
-
-    let min = Infinity, max = -Infinity;
-    for (const v of pts) {
-      const n = Number(v);
-      if (!Number.isFinite(n)) continue;
-      if (n < min) min = n;
-      if (n > max) max = n;
-    }
-    if (!Number.isFinite(min) || !Number.isFinite(max) || min === max) return container;
-
-    const svgNS = "http://www.w3.org/2000/svg";
-    const svg = document.createElementNS(svgNS, "svg");
-    svg.setAttribute("width", String(w));
-    svg.setAttribute("height", String(h));
-    svg.setAttribute("viewBox", `0 0 ${w} ${h}`);
-
-    const poly = document.createElementNS(svgNS, "polyline");
-
-    const toY = (v) => {
-      const t = (Number(v) - min) / (max - min);
-      return (h - 1) - t * (h - 2);
-    };
-
-    const step = (w - 2) / (pts.length - 1);
-    const coords = pts.map((v, i) => `${1 + i * step},${toY(v)}`).join(" ");
-    poly.setAttribute("points", coords);
-    poly.setAttribute("fill", "none");
-    poly.setAttribute("stroke-width", "1.5");
-
-    svg.appendChild(poly);
-    container.appendChild(svg);
+    // keep it blank if no spark data
     return container;
   },
 
-  fmtNum(n, decimals) {
-    const num = Number(n);
-    if (!Number.isFinite(num)) return "—";
+  fmtNum: function (n, decimals) {
+    var num = Number(n);
+    if (!isFinite(num)) return "—";
     return num.toFixed(decimals);
   },
 
-  fmtSigned(n, decimals) {
-    const num = Number(n);
-    if (!Number.isFinite(num)) return "—";
-    const sign = num > 0 ? "+" : "";
+  fmtSigned: function (n, decimals) {
+    var num = Number(n);
+    if (!isFinite(num)) return "—";
+    var sign = num > 0 ? "+" : "";
     return sign + num.toFixed(decimals);
   }
 });
