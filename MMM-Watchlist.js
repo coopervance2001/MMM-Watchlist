@@ -18,15 +18,15 @@ Module.register("MMM-Watchlist", {
     this.loaded = false;
     this.dataRows = [];
     this.error = null;
+    Log.log("[MMM-Watchlist] front-end start() ran");
 
     this.sendSocketNotification("MMM_WL_CONFIG", {
       symbols: this.config.symbols,
       symbolsUrl: this.config.symbolsUrl,
       refreshInterval: this.config.refreshInterval,
       requestTimeout: this.config.requestTimeout,
-      backoff: this.config.backoff,
-      sparkline: this.config.sparkline,
-      sort: this.config.sort
+      provider: this.config.provider,
+      apiKey: this.config.apiKey
     });
 
     this.updateDom(0);
@@ -52,71 +52,69 @@ Module.register("MMM-Watchlist", {
   },
 
   getDom: function () {
-    var wrapper = document.createElement("div");
-    wrapper.className = "mmm-wl";
+  var wrapper = document.createElement("div");
+  wrapper.className = "mmm-wl";
 
-    if (!this.loaded) {
-      wrapper.classList.add("dimmed", "small");
-      wrapper.innerText = "Loading watchlist…";
-      return wrapper;
-    }
-
-    if (this.error) {
-      wrapper.classList.add("small");
-      wrapper.innerText = "Watchlist error: " + this.error;
-      return wrapper;
-    }
-
-    if (!this.dataRows || !this.dataRows.length) {
-      wrapper.classList.add("dimmed", "small");
-      wrapper.innerText = "No symbols to display.";
-      return wrapper;
-    }
-
-    var table = document.createElement("table");
-    table.className = "mmm-wl-table small";
-
-    if (this.config.showHeader) {
-      var thead = document.createElement("thead");
-      var trh = document.createElement("tr");
-      for (var i = 0; i < this.config.columns.length; i++) {
-        var col = this.config.columns[i];
-        var th = document.createElement("th");
-        th.textContent = this.prettyCol(col);
-        trh.appendChild(th);
-      }
-      thead.appendChild(trh);
-      table.appendChild(thead);
-    }
-
-    var tbody = document.createElement("tbody");
-
-    for (var r = 0; r < this.dataRows.length; r++) {
-      var row = this.dataRows[r];
-      var tr = document.createElement("tr");
-
-      var chg = Number(row && row.change ? row.change : 0);
-      if (chg > 0) tr.classList.add("pos");
-      if (chg < 0) tr.classList.add("neg");
-
-      for (var c = 0; c < this.config.columns.length; c++) {
-        var colName = this.config.columns[c];
-        var td = document.createElement("td");
-        td.className = "col-" + colName;
-
-        if (colName === "spark") td.appendChild(this.renderSpark(row));
-        else td.textContent = this.formatCell(colName, row);
-
-        tr.appendChild(td);
-      }
-
-      tbody.appendChild(tr);
-    }
-
-    table.appendChild(tbody);
-    wrapper.appendChild(table);
+  if (!this.loaded) {
+    wrapper.classList.add("dimmed", "small");
+    wrapper.innerText = "Loading watchlist...";
     return wrapper;
-  },
+  }
+
+  if (this.error) {
+    wrapper.classList.add("small");
+    wrapper.innerText = "Watchlist error: " + this.error;
+    return wrapper;
+  }
+
+  if (!this.dataRows || !this.dataRows.length) {
+    wrapper.classList.add("dimmed", "small");
+    wrapper.innerText = "No symbols to display.";
+    return wrapper;
+  }
+
+  var table = document.createElement("table");
+  table.className = "mmm-wl-table small";
+
+  if (this.config.showHeader) {
+    var thead = document.createElement("thead");
+    var trh = document.createElement("tr");
+    for (var i = 0; i < this.config.columns.length; i++) {
+      var col = this.config.columns[i];
+      var th = document.createElement("th");
+      th.textContent = this.prettyCol(col);
+      trh.appendChild(th);
+    }
+    thead.appendChild(trh);
+    table.appendChild(thead);
+  }
+
+  var tbody = document.createElement("tbody");
+
+  for (var r = 0; r < this.dataRows.length; r++) {
+    var row = this.dataRows[r];
+    var tr = document.createElement("tr");
+
+    var chg = Number(row && row.change ? row.change : 0);
+    if (chg > 0) tr.classList.add("pos");
+    if (chg < 0) tr.classList.add("neg");
+
+    for (var c = 0; c < this.config.columns.length; c++) {
+      var colName = this.config.columns[c];
+      var td = document.createElement("td");
+      td.className = "col-" + colName;
+
+      td.textContent = this.formatCell(colName, row);
+      tr.appendChild(td);
+    }
+
+    tbody.appendChild(tr);
+  }
+
+  table.appendChild(tbody);
+  wrapper.appendChild(table);
+  return wrapper;
+},
 
   prettyCol: function (col) {
     var map = {
@@ -140,17 +138,17 @@ Module.register("MMM-Watchlist", {
     if (col === "symbol") return (row && row.symbol) ? row.symbol : "";
     if (col === "name") {
       var name = (row && row.name) ? row.name : "";
-      return name.length > this.config.maxNameLength ? name.slice(0, this.config.maxNameLength - 1) + "…" : name;
+      return name.length > this.config.maxNameLength ? name.slice(0, this.config.maxNameLength - 1) + "â€¦" : name;
     }
     if (col === "price") return this.fmtNum(row ? row.price : null, d);
     if (col === "change") return this.fmtSigned(row ? row.change : null, d);
     if (col === "changePercent") return this.fmtSigned(row ? row.changePercent : null, d) + "%";
 
-    if (col === "prePrice") return (row && row.preMarketActive) ? this.fmtNum(row.prePrice, d) : "—";
-    if (col === "preChgPct") return (row && row.preMarketActive) ? (this.fmtSigned(row.preChgPct, d) + "%") : "—";
+    if (col === "prePrice") return (row && row.preMarketActive) ? this.fmtNum(row.prePrice, d) : "â€”";
+    if (col === "preChgPct") return (row && row.preMarketActive) ? (this.fmtSigned(row.preChgPct, d) + "%") : "â€”";
 
-    if (col === "postPrice") return (row && row.postMarketActive) ? this.fmtNum(row.postPrice, d) : "—";
-    if (col === "postChgPct") return (row && row.postMarketActive) ? (this.fmtSigned(row.postChgPct, d) + "%") : "—";
+    if (col === "postPrice") return (row && row.postMarketActive) ? this.fmtNum(row.postPrice, d) : "â€”";
+    if (col === "postChgPct") return (row && row.postMarketActive) ? (this.fmtSigned(row.postChgPct, d) + "%") : "â€”";
 
     return (row && row[col] != null) ? String(row[col]) : "";
   },
@@ -164,13 +162,13 @@ Module.register("MMM-Watchlist", {
 
   fmtNum: function (n, decimals) {
     var num = Number(n);
-    if (!isFinite(num)) return "—";
+    if (!isFinite(num)) return "â€”";
     return num.toFixed(decimals);
   },
 
   fmtSigned: function (n, decimals) {
     var num = Number(n);
-    if (!isFinite(num)) return "—";
+    if (!isFinite(num)) return "â€”";
     var sign = num > 0 ? "+" : "";
     return sign + num.toFixed(decimals);
   }
