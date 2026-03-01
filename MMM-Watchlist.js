@@ -33,14 +33,14 @@ Module.register("MMM-Watchlist", {
     },
   
     socketNotificationReceived: function (notification, payload) {
-      if (notification == "MMM_WL_DATA") {
+      if (notification === "MMM_WL_DATA") {
         this.loaded = true;
         this.error = null;
         this.dataRows = (payload && payload.rows) ? payload.rows : [];
         this.updateDom(150);
       }
   
-      if (notification == "MMM_WL_ERROR") {
+      if (notification === "MMM_WL_ERROR") {
         this.loaded = true;
         this.error = (payload && payload.message) ? payload.message : "Unknown error";
         this.updateDom(150);
@@ -136,13 +136,13 @@ Module.register("MMM-Watchlist", {
     formatCell: function (col, row) {
       var d = this.config.decimals;
   
-      if (col == "spark") return "";
-      if (col == "symbol") return (row && row.symbol) ? row.symbol : "";
+      if (col === "spark") return "";
+      if (col === "symbol") return (row && row.symbol) ? row.symbol : "";
 
-      if (col == "currentPrice") return this.fmtNum(row ? row.currentPrice : null, d);
+      if (col === "currentPrice") return this.fmtNum(row ? row.currentPrice : null, d);
       if (col === "previousClose") return this.fmtNum(row ? row.previousClose : null, d);
-      if (col == "change") return this.fmtSigned(row ? row.change : null, d);
-      if (col == "changePercent") return this.fmtSigned(row ? row.changePercent : null, d) + "%";
+      if (col === "change") return this.fmtSigned(row ? row.change : null, d);
+      if (col === "changePercent") return this.fmtSigned(row ? row.changePercent : null, d) + "%";
   
       return (row && row[col] != null) ? String(row[col]) : "";
     },
@@ -168,4 +168,5 @@ Module.register("MMM-Watchlist", {
     }
   });
   
+
 
