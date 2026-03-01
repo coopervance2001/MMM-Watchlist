@@ -104,8 +104,11 @@ Module.register("MMM-Watchlist", {
             var td = document.createElement("td");
             td.className = "col-" + colName;
       
-            if (colName == "spark") td.appendChild(this.renderSpark(row));
-            else td.textContent = this.formatCell(colName, row);
+            if (colName === "spark") {
+              td.appendChild(this.renderSpark(row));
+            } else {
+              td.textContent = this.formatCell(colName, row);
+            }
 
             tr.appendChild(td);
           }
@@ -122,7 +125,7 @@ Module.register("MMM-Watchlist", {
       var map = {
         symbol: "Symbols",
         currentPrice: "Cur.Price",
-        previousOpen: "Open",
+        previousClose: "Prev.Close",
         change: "CHG",
         changePercent: "CHG%",
         spark: ""
@@ -137,8 +140,7 @@ Module.register("MMM-Watchlist", {
       if (col == "symbol") return (row && row.symbol) ? row.symbol : "";
 
       if (col == "currentPrice") return this.fmtNum(row ? row.currentPrice : null, d);
-      if (col == "previousOpen") return this.fmtNum(row ? row.previousOpen : null, d);
-
+      if (col === "previousClose") return this.fmtNum(row ? row.previousClose : null, d);
       if (col == "change") return this.fmtSigned(row ? row.change : null, d);
       if (col == "changePercent") return this.fmtSigned(row ? row.changePercent : null, d) + "%";
   
@@ -166,3 +168,4 @@ Module.register("MMM-Watchlist", {
     }
   });
   
+
